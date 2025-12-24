@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [originalMimeType, setOriginalMimeType] = useState<string>('image/png');
   const [editedImage, setEditedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<{ message: string } | null>(null);
+  const [error, setError] = useState<{ message: string; isNotFound?: boolean } | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<Selection | null>(null);
@@ -47,6 +47,7 @@ const App: React.FC = () => {
     if (window.aistudio) {
       await window.aistudio.openSelectKey();
       setError(null);
+      // After opening selector, we assume user might want to try again
     }
   };
 
@@ -98,8 +99,14 @@ const App: React.FC = () => {
     } catch (err: any) {
       const msg = err.message || "";
       const errorStr = JSON.stringify(err);
+      const isEntityNotFound = msg.includes("Requested entity was not found") || errorStr.includes("NOT_FOUND");
       
-      if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")) {
+      if (isEntityNotFound) {
+        setError({ 
+          message: "API Entity mismatch. Your current API key project might not have access to these models.",
+          isNotFound: true
+        });
+      } else if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")) {
         setError({ 
           message: "Quota Exceeded. Please wait a moment before trying again."
         });
@@ -286,11 +293,19 @@ const App: React.FC = () => {
               )}
 
               {error && (
-                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[300] px-8 py-5 bg-red-950/90 backdrop-blur-3xl border border-red-500/30 text-red-100 rounded-[2rem] text-[11px] font-black uppercase tracking-widest flex flex-col lg:flex-row items-center gap-4 shadow-2xl animate-in slide-in-from-top-6 max-w-[90vw]">
-                  <div className="flex items-center gap-4">
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[300] px-8 py-5 bg-red-950/90 backdrop-blur-3xl border border-red-500/30 text-red-100 rounded-[2rem] text-[11px] font-black uppercase tracking-widest flex flex-col items-center gap-4 shadow-2xl animate-in slide-in-from-top-6 max-w-[90vw]">
+                  <div className="flex items-center gap-4 w-full">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_12px_red] shrink-0"></div>
                     <div className="flex-1">{error.message}</div>
                   </div>
+                  {error.isNotFound && (
+                    <button 
+                      onClick={handleOpenKeySelector}
+                      className="mt-2 lg:mt-0 lg:ml-4 bg-white text-black px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all whitespace-nowrap"
+                    >
+                      Update API Project
+                    </button>
+                  )}
                 </div>
               )}
             </div>

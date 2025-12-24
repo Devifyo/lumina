@@ -10,8 +10,9 @@ export async function editImage(
 ): Promise<string | null> {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
+  // Corrected model name according to Gemini API specs
   const PRIMARY_MODEL = 'gemini-2.5-flash-image';
-  const FALLBACK_MODEL = 'gemini-flash-latest';
+  const FALLBACK_MODEL = 'gemini-3-flash-preview';
 
   let prompt = '';
   switch (mode) {
@@ -68,12 +69,12 @@ Apply the modification while maintaining consistency with the original lighting 
   }
 
   const performRequest = async (model: string): Promise<string | null> => {
-    // Only include imageConfig if using the dedicated image models (nano banana series)
-    // gemini-flash-latest (the fallback) does not support imageConfig and throws a 400.
-    const isImageModel = model.includes('-image');
+    // Nano banana models (like gemini-2.5-flash-image) use imageConfig.
+    // Flash models (like gemini-3-flash-preview) do not support imageConfig for editing tasks.
+    const isNanoBanana = model.includes('gemini-2.5') || model.includes('nano-banana');
     
     const config: any = {};
-    if (isImageModel) {
+    if (isNanoBanana) {
       config.imageConfig = {
         aspectRatio: "1:1"
       };
@@ -115,18 +116,21 @@ Apply the modification while maintaining consistency with the original lighting 
     const status = error?.status || error?.code;
     const message = error?.message || "";
 
-    // Check if error is Quota (429) or Bad Request (400) or other retriable synthesis errors
-    if (status === 429 || status === 400 || message.includes("quota") || message.includes("limit") || message.includes("not enabled")) {
-      console.warn(`Primary model ${PRIMARY_MODEL} failed (Status: ${status}). Falling back to ${FALLBACK_MODEL}...`);
+    // Strictly catch 429 (Resource Exhausted), 400 (Bad Request), or 404 (Not Found)
+    if (status === 429 || status === 400 || status === 404 || 
+        message.includes("429") || message.includes("400") || message.includes("404")) {
+      console.warn(`Primary model request failed (${PRIMARY_MODEL}). Status: ${status}. Retrying with fallback: ${FALLBACK_MODEL}...`);
       try {
         return await performRequest(FALLBACK_MODEL);
       } catch (fallbackError: any) {
-        console.error("Fallback Model Synthesis Error:", fallbackError);
+        // Log the final failure if even the fallback fails
+        console.error("Fallback Model Failed:", fallbackError);
         throw fallbackError;
       }
     }
 
-    console.error("Primary Model Synthesis Error:", error);
+    // Rethrow if error is not 429, 400, or 404
+    console.error("Critical Primary Model Error:", error);
     throw error;
   }
 }
