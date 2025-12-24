@@ -68,6 +68,17 @@ Apply the modification while maintaining consistency with the original lighting 
   }
 
   const performRequest = async (model: string): Promise<string | null> => {
+    // Only include imageConfig if using the dedicated image models (nano banana series)
+    // gemini-flash-latest (the fallback) does not support imageConfig and throws a 400.
+    const isImageModel = model.includes('-image');
+    
+    const config: any = {};
+    if (isImageModel) {
+      config.imageConfig = {
+        aspectRatio: "1:1"
+      };
+    }
+
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: model,
       contents: {
@@ -83,11 +94,7 @@ Apply the modification while maintaining consistency with the original lighting 
           },
         ],
       },
-      config: {
-        imageConfig: {
-          aspectRatio: "1:1"
-        }
-      }
+      config: config
     });
 
     const candidates = response.candidates || [];
@@ -108,8 +115,8 @@ Apply the modification while maintaining consistency with the original lighting 
     const status = error?.status || error?.code;
     const message = error?.message || "";
 
-    // Check if error is Quota (429) or Bad Request (400)
-    if (status === 429 || status === 400 || message.includes("quota") || message.includes("limit")) {
+    // Check if error is Quota (429) or Bad Request (400) or other retriable synthesis errors
+    if (status === 429 || status === 400 || message.includes("quota") || message.includes("limit") || message.includes("not enabled")) {
       console.warn(`Primary model ${PRIMARY_MODEL} failed (Status: ${status}). Falling back to ${FALLBACK_MODEL}...`);
       try {
         return await performRequest(FALLBACK_MODEL);
