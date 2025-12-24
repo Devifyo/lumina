@@ -47,8 +47,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload }) => {
   return (
     <div 
       className={`
-        relative border-2 border-dashed rounded-3xl p-12 flex flex-col items-center justify-center transition-all duration-300 min-h-[400px]
-        ${isDragging ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01]' : 'border-slate-300 bg-white hover:border-slate-400'}
+        relative border-2 border-dashed rounded-[3rem] p-12 flex flex-col items-center justify-center transition-all duration-500 min-h-[420px] backdrop-blur-3xl
+        ${isDragging 
+          ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02] shadow-[0_0_80px_rgba(99,102,241,0.2)]' 
+          : 'border-slate-800 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-900/60 shadow-2xl'}
       `}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
@@ -62,33 +64,43 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload }) => {
         accept="image/*"
       />
       
-      <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
-        <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+      <div className={`
+        w-24 h-24 rounded-3xl flex items-center justify-center mb-8 transition-all duration-500
+        ${isDragging ? 'bg-indigo-500 text-white rotate-12 scale-110' : 'bg-indigo-600/10 text-indigo-400'}
+      `}>
+        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
         </svg>
       </div>
 
-      <h3 className="text-xl font-semibold mb-2">Upload your image</h3>
-      <p className="text-slate-500 mb-8 text-center max-w-xs">
-        Drag and drop your photo here, or click to browse. Supports JPG, PNG, and WebP.
-      </p>
+      <div className="text-center space-y-4 max-w-sm mb-10">
+        <h3 className="text-2xl font-black text-white uppercase tracking-tight">
+          Upload Source Image
+        </h3>
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-relaxed">
+          Drag and drop assets into the workspace or click to browse local storage
+        </p>
+      </div>
 
       <button 
         onClick={() => fileInputRef.current?.click()}
-        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-full transition-all shadow-lg shadow-indigo-200 active:scale-95"
+        className="group relative overflow-hidden bg-indigo-600 hover:bg-indigo-500 text-white px-12 py-5 rounded-[2rem] transition-all shadow-2xl active:scale-95"
       >
-        Choose a File
+        <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.4em] flex items-center gap-3">
+          Initialize Studio
+        </span>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
       </button>
 
-      <div className="mt-12 flex gap-4 text-xs font-medium text-slate-400">
-        <span className="flex items-center gap-1">
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"/></svg>
-          No Quality Loss
-        </span>
-        <span className="flex items-center gap-1">
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"/></svg>
-          Secure & Private
-        </span>
+      <div className="mt-14 flex flex-wrap justify-center gap-8 lg:gap-12">
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Lossless Synthesis</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div>
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Edge Refinement</span>
+        </div>
       </div>
     </div>
   );

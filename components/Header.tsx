@@ -8,6 +8,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onChangeImage, onToggleHistory, hasHistory }) => {
+  const APP_NAME = process.env.APP_NAME || 'Lumina Studio';
+  
   return (
     <header className="fixed top-0 left-0 right-0 bg-black/80 border-b border-white/5 z-[200] backdrop-blur-2xl">
       <div className="container mx-auto px-4 lg:px-10 h-20 flex items-center justify-between">
@@ -18,10 +20,10 @@ const Header: React.FC<HeaderProps> = ({ onChangeImage, onToggleHistory, hasHist
             </svg>
           </div>
           <div>
-            <h1 className="text-base lg:text-xl font-black text-white tracking-tighter uppercase leading-none">
-              Lumina Studio <span className="hidden sm:inline-block text-indigo-500 font-mono text-[8px] lg:text-[9px] align-top px-1.5 lg:py-1 rounded bg-indigo-500/10 ml-1 border border-indigo-500/20">PRO</span>
+            <h1 className="text-base lg:text-xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-1.5">
+              {APP_NAME} <span className="hidden sm:inline-block text-indigo-500 font-mono text-[8px] lg:text-[9px] align-top px-1.5 lg:py-1 rounded bg-indigo-500/10 border border-indigo-500/20">PRO</span>
             </h1>
-            <p className="text-[7px] lg:text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-0.5">Neural Synthesis</p>
+            <p className="text-[7px] lg:text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] lg:tracking-[0.4em] mt-0.5">Neural Synthesis Studio</p>
           </div>
         </div>
         

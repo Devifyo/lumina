@@ -20,6 +20,7 @@ interface ConfirmationState {
 }
 
 const App: React.FC = () => {
+  const APP_NAME = process.env.APP_NAME || 'Lumina Studio';
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [originalMimeType, setOriginalMimeType] = useState<string>('image/png');
   const [editedImage, setEditedImage] = useState<string | null>(null);
@@ -200,12 +201,11 @@ const App: React.FC = () => {
              <button onClick={() => setActiveLegalPage('terms')} className="hover:text-indigo-400 transition-colors">Terms of Service</button>
              <button onClick={() => setActiveLegalPage('contact')} className="hover:text-indigo-400 transition-colors">Contact Us</button>
              <button onClick={() => setActiveLegalPage('cookies')} className="hover:text-indigo-400 transition-colors">Cookie Settings</button>
-             <button onClick={() => setActiveLegalPage('about')} className="hover:text-indigo-400 transition-colors">About Lumina</button>
+             <button onClick={() => setActiveLegalPage('about')} className="hover:text-indigo-400 transition-colors">About {APP_NAME}</button>
            </footer>
         </main>
       ) : (
         <main className="flex-grow flex flex-col lg:flex-row lg:h-[calc(100vh-80px)] relative overflow-y-auto lg:overflow-hidden no-scrollbar">
-          {/* Action Panel: Studio tab on mobile or fixed on desktop */}
           <div className={`
             lg:w-[380px] lg:min-w-[380px] lg:h-full lg:overflow-y-auto lg:border-r lg:border-white/5 bg-[#020617] z-30 transition-all duration-300
             ${activeTab === 'edit' ? 'block fixed inset-0 z-[60] pt-20 pb-32' : 'hidden lg:block'}
@@ -221,7 +221,6 @@ const App: React.FC = () => {
               />
           </div>
 
-          {/* Main Preview: View tab on mobile or central on desktop */}
           <div ref={previewAreaRef} className={`
             flex-grow relative lg:h-full bg-[#05080f] flex flex-col min-h-[70vw] sm:min-h-0
             ${activeTab === 'view' ? 'flex' : 'hidden lg:flex'}
@@ -274,10 +273,9 @@ const App: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="h-32 lg:hidden shrink-0"></div> {/* Mobile padding for nav */}
+            <div className="h-32 lg:hidden shrink-0"></div>
           </div>
 
-          {/* History Sidebar Container - Elevated z-index to be above Header */}
           <div 
             className={`
               fixed inset-y-0 right-0 z-[250] w-full lg:w-[420px] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) bg-[#020617] border-l border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.9)]
@@ -303,7 +301,6 @@ const App: React.FC = () => {
              </div>
           </div>
 
-          {/* Sidebar Backdrop - Elevated z-index */}
           {isAnyHistoryOpen && (
             <div 
               className="fixed inset-0 z-[240] bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
@@ -357,7 +354,6 @@ const App: React.FC = () => {
         onClose={() => setActiveLegalPage(null)} 
       />
 
-      {/* Confirmation Portal */}
       {confirm.isOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/85 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-[#0f172a] border border-white/10 rounded-[3.5rem] p-10 lg:p-12 max-w-sm w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-200">

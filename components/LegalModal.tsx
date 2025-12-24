@@ -10,28 +10,31 @@ interface LegalModalProps {
 }
 
 const LegalModal: React.FC<LegalModalProps> = ({ type, isOpen, onClose }) => {
+  const APP_NAME = process.env.APP_NAME || 'Lumina Studio';
+  const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'support@luminastudio.pro';
+  
   if (!isOpen) return null;
 
   const content = {
     privacy: {
       title: 'Privacy Policy',
-      body: `At Lumina Studio Pro, we prioritize your privacy. We do not store your uploaded images on our servers; all processing is handled via temporary secure streams. No personal identifiable information is collected unless voluntarily provided for support. We use industry-standard encryption to protect data during transmission.`
+      body: `At ${APP_NAME}, we prioritize your privacy. We do not store your uploaded images on our servers; all processing is handled via temporary secure streams. No personal identifiable information is collected unless voluntarily provided for support. We use industry-standard encryption to protect data during transmission.`
     },
     terms: {
       title: 'Terms of Service',
-      body: `By using Lumina Studio Pro, you agree to use our vision synthesis tools for lawful purposes only. You retain ownership of your original assets. We are not responsible for any misuse of the generated content. Our service is provided "as is" without warranties of any kind.`
+      body: `By using ${APP_NAME}, you agree to use our vision synthesis tools for lawful purposes only. You retain ownership of your original assets. We are not responsible for any misuse of the generated content. Our service is provided "as is" without warranties of any kind.`
     },
     contact: {
       title: 'Contact Support',
-      body: `Need assistance or have questions about our professional tools? Reach out to our technical team at support@luminastudio.pro. We aim to respond to all inquiries within 24 business hours.`
+      body: `Need assistance or have questions about our professional tools? Reach out to our technical team at ${CONTACT_EMAIL}. We aim to respond to all inquiries within 24 business hours.`
     },
     cookies: {
       title: 'Cookie Policy',
-      body: `Lumina Studio Pro uses essential cookies to manage session state and preferences. We do not use tracking cookies for third-party advertising profile building. You can manage your browser settings to disable cookies, though some features may be limited.`
+      body: `${APP_NAME} uses essential cookies to manage session state and preferences. We do not use tracking cookies for third-party advertising profile building. You can manage your browser settings to disable cookies, though some features may be limited.`
     },
     about: {
-      title: 'About Lumina Studio',
-      body: `Lumina Studio Pro is a next-generation neural image processing platform. We specialize in high-fidelity subject isolation, professional object erasure, and advanced scene reconstruction. Our engine uses state-of-the-art vision models to deliver studio-quality results in seconds.`
+      title: `About ${APP_NAME}`,
+      body: `${APP_NAME} is a next-generation neural image processing platform. We specialize in high-fidelity subject isolation, professional object erasure, and advanced scene reconstruction. Our engine uses state-of-the-art vision models to deliver studio-quality results in seconds.`
     }
   }[type];
 
@@ -53,7 +56,7 @@ const LegalModal: React.FC<LegalModalProps> = ({ type, isOpen, onClose }) => {
         
         <div className="text-slate-400 text-sm leading-relaxed space-y-4 max-h-[60vh] overflow-y-auto pr-4 no-scrollbar">
           <p>{content.body}</p>
-          <p className="pt-4 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Effective Date: October 2023 | Version 3.1</p>
+          <p className="pt-4 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Effective Date: October 2023 | Engine v3.1</p>
         </div>
         
         <div className="mt-10">
