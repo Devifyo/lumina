@@ -20,12 +20,11 @@ interface ConfirmationState {
 
 const App: React.FC = () => {
   const APP_NAME = process.env.APP_NAME || 'Lumina Studio';
-  const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [originalMimeType, setOriginalMimeType] = useState<string>('image/png');
   const [editedImage, setEditedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; showUpgrade?: boolean } | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<Selection | null>(null);
@@ -44,26 +43,10 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<MobileTab>('view');
   const previewAreaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const checkKey = async () => {
-      // Use type assertion to access environment-provided aistudio safely if available
-      // otherwise fallback to process.env.API_KEY check
-      const studio = (window as any).aistudio;
-      if (studio) {
-        const selected = await studio.hasSelectedApiKey();
-        setHasKey(selected || !!process.env.API_KEY);
-      } else {
-        setHasKey(!!process.env.API_KEY);
-      }
-    };
-    checkKey();
-  }, []);
-
   const handleOpenKeySelector = async () => {
-    const studio = (window as any).aistudio;
-    if (studio) {
-      await studio.openSelectKey();
-      setHasKey(true);
+    if (window.aistudio) {
+      await window.aistudio.openSelectKey();
+      setError(null);
     }
   };
 
@@ -95,8 +78,8 @@ const App: React.FC = () => {
 
       if (result) {
         setEditedImage(result);
-        let promptText = prompt || 'Neural Mutation';
-        if (mode === EditMode.REMOVE_BACKGROUND) promptText = 'Subject Isolation';
+        let promptText = prompt || 'Neural Transformation';
+        if (mode === EditMode.REMOVE_BACKGROUND) promptText = 'Alpha Extraction';
         if (mode === EditMode.ENHANCE) promptText = 'Visual Polish';
         if (mode === EditMode.BLUR_BACKGROUND) promptText = 'Depth Focus';
         if (targetSelection && mode === EditMode.REMOVE_OBJECT) promptText = `Smart Erasure`;
@@ -110,14 +93,24 @@ const App: React.FC = () => {
         };
         setHistory(prev => [newHistoryItem, ...prev]);
       } else {
-        setError("The synthesis engine returned no data. Please adjust your target.");
+        setError({ message: "Engine returned null. Adjust your parameters." });
       }
     } catch (err: any) {
-      const msg = err.message || "Synthesis failed.";
+      const msg = err.message || "";
+      const errorStr = JSON.stringify(err);
+      
       if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")) {
-        setError("Synthesis Quota Exhausted. Check your billing status or wait a moment.");
+        setError({ 
+          message: "Quota Exceeded. Consider using a paid project key for unlimited professional synthesis.",
+          showUpgrade: true 
+        });
+      } else if (msg.includes("403") || msg.includes("PERMISSION_DENIED") || errorStr.includes("403")) {
+        setError({ 
+          message: "Permission Denied. If using Pro features, a paid billing project key is required.",
+          showUpgrade: true 
+        });
       } else {
-        setError(msg);
+        setError({ message: msg || "Neural Synthesis encountered an unexpected error." });
       }
     } finally {
       setIsProcessing(false);
@@ -151,7 +144,7 @@ const App: React.FC = () => {
     if (history.length === 0) return;
     showConfirm(
       "Revert Mutation?", 
-      "Warning: This will discard your most recent changes and restore the previous state.",
+      "Discard your most recent changes and restore the previous state?",
       () => {
         const newHistory = [...history];
         newHistory.shift();
@@ -184,7 +177,7 @@ const App: React.FC = () => {
   const handleReset = () => {
     showConfirm(
       "Reset Canvas?", 
-      "Warning: This clears all mutations and reverts to the raw original image.", 
+      "Revert to the raw original image and clear all mutations?", 
       () => {
         setEditedImage(null);
         setError(null);
@@ -205,28 +198,6 @@ const App: React.FC = () => {
   };
 
   const isAnyHistoryOpen = isHistoryOpen || activeTab === 'history';
-
-  // Landing / Key Selection View if no key in env or session
-  if (hasKey === false && !process.env.API_KEY) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-6 text-center">
-        <div className="absolute inset-0 bg-indigo-500/5 blur-[200px] pointer-events-none"></div>
-        <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl mb-12 animate-bounce">
-          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-        </div>
-        <h1 className="text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter mb-6">{APP_NAME} PRO</h1>
-        <p className="text-slate-400 max-w-md text-sm lg:text-base leading-relaxed mb-12">
-          Professional neural synthesis requires a verified API key. Connect your AI Studio account to unlock unlimited high-fidelity subject isolation.
-        </p>
-        <button 
-          onClick={handleOpenKeySelector}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white px-12 py-6 rounded-[2.5rem] text-[11px] font-black uppercase tracking-[0.5em] transition-all shadow-2xl hover:scale-105"
-        >
-          Initialize Studio Key
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#020617] text-slate-100 overflow-x-hidden pt-20">
@@ -279,7 +250,7 @@ const App: React.FC = () => {
               <div className="w-full h-full flex flex-col xl:flex-row gap-6 lg:gap-12 items-center justify-center">
                 <div className={`${editedImage ? 'hidden xl:flex' : 'flex'} w-full h-full items-stretch justify-center flex-1 min-w-0`}>
                   <ImageDisplay 
-                    label={editedImage && applyToResult ? "Buffer" : "Source"} 
+                    label={editedImage && applyToResult ? "Working Buffer" : "Raw Input"} 
                     src={editedImage && applyToResult ? editedImage : originalImage} 
                     interactive={isSelectMode}
                     onImageClick={(sel) => setPendingSelection(sel)}
@@ -288,7 +259,7 @@ const App: React.FC = () => {
                 </div>
                 <div className="flex w-full h-full items-stretch justify-center flex-1 min-w-0">
                   <ImageDisplay 
-                    label="Render" 
+                    label="Neural Result" 
                     src={editedImage} 
                     beforeSrc={originalImage} 
                     isLoading={isProcessing}
@@ -304,7 +275,7 @@ const App: React.FC = () => {
                     className={`px-5 lg:px-6 py-3.5 lg:py-4 rounded-3xl text-[9px] lg:text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 lg:gap-4 ${applyToResult ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30' : 'bg-slate-800 text-slate-400'}`}
                   >
                     <div className={`w-2 h-2 rounded-full ${applyToResult ? 'bg-white shadow-[0_0_8px_white]' : 'bg-slate-600'}`}></div>
-                    Compound
+                    Compound Mutations
                   </button>
                   <button 
                     onClick={handleUndo}
@@ -317,16 +288,25 @@ const App: React.FC = () => {
               )}
 
               {error && (
-                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[300] px-8 py-5 bg-red-950/90 backdrop-blur-3xl border border-red-500/30 text-red-100 rounded-[2rem] text-[11px] font-black uppercase tracking-widest flex items-center gap-4 shadow-2xl animate-in slide-in-from-top-6 max-w-[90vw]">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_12px_red] shrink-0"></div>
-                  <div className="flex-1">{error}</div>
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[300] px-8 py-5 bg-red-950/90 backdrop-blur-3xl border border-red-500/30 text-red-100 rounded-[2rem] text-[11px] font-black uppercase tracking-widest flex flex-col lg:flex-row items-center gap-4 shadow-2xl animate-in slide-in-from-top-6 max-w-[90vw]">
+                  <div className="flex items-center gap-4">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_12px_red] shrink-0"></div>
+                    <div className="flex-1">{error.message}</div>
+                  </div>
+                  {error.showUpgrade && (
+                    <button 
+                      onClick={handleOpenKeySelector}
+                      className="mt-4 lg:mt-0 px-6 py-2.5 bg-white text-black rounded-xl hover:bg-indigo-500 hover:text-white transition-all text-[9px] font-black"
+                    >
+                      Initialize Paid Key
+                    </button>
+                  )}
                 </div>
               )}
             </div>
             <div className="h-32 lg:hidden shrink-0"></div>
           </div>
 
-          {/* History Sidebar - Higher stacking and safe-zone exit button */}
           <div 
             className={`
               fixed inset-y-0 right-0 z-[500] w-full lg:w-[420px] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) bg-[#020617] border-l border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.9)]

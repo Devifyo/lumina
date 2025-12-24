@@ -92,25 +92,26 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload }) => {
         </div>
       </div>
 
-      {/* Redesigned Primary CTA */}
+      {/* Massive Premium Studio Button */}
       <button 
         onClick={() => fileInputRef.current?.click()}
-        className="group relative z-10 overflow-hidden bg-white text-black px-16 py-6 rounded-[2.5rem] transition-all duration-500 shadow-[0_25px_50px_rgba(0,0,0,0.4)] hover:shadow-[0_30px_60px_rgba(99,102,241,0.4)] hover:-translate-y-1 active:scale-95 border-2 border-white/10"
+        className="group relative z-10 overflow-hidden bg-white text-black px-20 py-8 rounded-[3rem] transition-all duration-500 shadow-[0_30px_70px_rgba(0,0,0,0.6)] hover:shadow-[0_40px_80px_rgba(99,102,241,0.4)] hover:-translate-y-2 active:scale-95 border-4 border-white/20"
       >
         <div className="absolute inset-0 bg-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"></div>
-        <span className="relative z-10 text-[13px] font-black uppercase tracking-[0.45em] flex items-center gap-4 group-hover:text-white transition-colors duration-300">
+        <span className="relative z-10 text-[15px] font-black uppercase tracking-[0.5em] flex items-center gap-6 group-hover:text-white transition-colors duration-300">
           Initialize Studio
+          <svg className="w-5 h-5 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
         </span>
       </button>
 
       <div className="mt-16 relative z-10 flex flex-wrap justify-center gap-10 lg:gap-14">
         <div className="flex items-center gap-3.5 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 backdrop-blur-md">
           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]"></div>
-          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Alpha-PNG Extraction</span>
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Alpha-PNG Support</span>
         </div>
         <div className="flex items-center gap-3.5 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 backdrop-blur-md">
           <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.8)]"></div>
-          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Neural Inpainting</span>
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Pro 1K Engine</span>
         </div>
       </div>
     </div>
