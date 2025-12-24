@@ -10,9 +10,9 @@ export async function editImage(
 ): Promise<string | null> {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
-  // Corrected model name according to Gemini API specs
+  // Dedicated image models that support image output via inlineData
   const PRIMARY_MODEL = 'gemini-2.5-flash-image';
-  const FALLBACK_MODEL = 'gemini-3-flash-preview';
+  const FALLBACK_MODEL = 'gemini-3-pro-image-preview';
 
   let prompt = '';
   switch (mode) {
@@ -24,7 +24,7 @@ Instructions:
 2. Remove all background elements completely.
 3. Every pixel that is NOT part of the subject must have ALPHA = 0 (100% transparent).
 4. Do NOT use placeholder colors (no white, black, or grey backgrounds).
-5. Clean the edges of the subject to prevent "halos" or original background bleeding.
+5. Output the result as a PNG with a proper alpha channel.
 6. The subject should be the only visible content on a fully transparent canvas.`;
       break;
     case EditMode.REMOVE_OBJECT:
@@ -64,21 +64,18 @@ Instructions:
     case EditMode.CUSTOM_PROMPT:
       prompt = `TASK: CREATIVE EDITING.
 User Instruction: "${customPrompt}".
-Apply the modification while maintaining consistency with the original lighting and perspective.`;
+Apply the modification while maintaining consistency with the original lighting and perspective.
+Output only the modified image.`;
       break;
   }
 
   const performRequest = async (model: string): Promise<string | null> => {
-    // Nano banana models (like gemini-2.5-flash-image) use imageConfig.
-    // Flash models (like gemini-3-flash-preview) do not support imageConfig for editing tasks.
-    const isNanoBanana = model.includes('gemini-2.5') || model.includes('nano-banana');
-    
-    const config: any = {};
-    if (isNanoBanana) {
-      config.imageConfig = {
+    // Both models used here are image models and support imageConfig.
+    const config: any = {
+      imageConfig: {
         aspectRatio: "1:1"
-      };
-    }
+      }
+    };
 
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: model,
@@ -106,31 +103,38 @@ Apply the modification while maintaining consistency with the original lighting 
         }
       }
     }
+    
+    // If we get here, the model returned text instead of an image.
+    // For these models, this usually means it refused or failed the specific generation.
     return null;
   };
 
   try {
-    // Attempt with Primary Model
-    return await performRequest(PRIMARY_MODEL);
+    const result = await performRequest(PRIMARY_MODEL);
+    if (result) return result;
+    
+    // If PRIMARY returned null (no image), try FALLBACK
+    console.warn(`Primary model ${PRIMARY_MODEL} returned no image data. Attempting fallback...`);
+    return await performRequest(FALLBACK_MODEL);
   } catch (error: any) {
     const status = error?.status || error?.code;
     const message = error?.message || "";
 
-    // Strictly catch 429 (Resource Exhausted), 400 (Bad Request), or 404 (Not Found)
+    // Retry on common availability errors (429, 404, 400)
     if (status === 429 || status === 400 || status === 404 || 
         message.includes("429") || message.includes("400") || message.includes("404")) {
-      console.warn(`Primary model request failed (${PRIMARY_MODEL}). Status: ${status}. Retrying with fallback: ${FALLBACK_MODEL}...`);
+      console.warn(`Primary model ${PRIMARY_MODEL} failed (Status: ${status}). Retrying with ${FALLBACK_MODEL}...`);
       try {
-        return await performRequest(FALLBACK_MODEL);
+        const result = await performRequest(FALLBACK_MODEL);
+        if (!result) throw new Error("Fallback model failed to generate image data.");
+        return result;
       } catch (fallbackError: any) {
-        // Log the final failure if even the fallback fails
-        console.error("Fallback Model Failed:", fallbackError);
+        console.error("Fallback Model Synthesis Error:", fallbackError);
         throw fallbackError;
       }
     }
 
-    // Rethrow if error is not 429, 400, or 404
-    console.error("Critical Primary Model Error:", error);
+    console.error("Primary Model Synthesis Error:", error);
     throw error;
   }
 }

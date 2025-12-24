@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [originalMimeType, setOriginalMimeType] = useState<string>('image/png');
   const [editedImage, setEditedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<{ message: string; isNotFound?: boolean } | null>(null);
+  const [error, setError] = useState<{ message: string; isNotFound?: boolean; isQuota?: boolean } | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<Selection | null>(null);
@@ -47,7 +47,6 @@ const App: React.FC = () => {
     if (window.aistudio) {
       await window.aistudio.openSelectKey();
       setError(null);
-      // After opening selector, we assume user might want to try again
     }
   };
 
@@ -94,25 +93,28 @@ const App: React.FC = () => {
         };
         setHistory(prev => [newHistoryItem, ...prev]);
       } else {
-        setError({ message: "Engine returned null. Adjust your parameters." });
+        setError({ message: "Engine was unable to generate an image for this request. Try adjusting your parameters or picking a different area." });
       }
     } catch (err: any) {
       const msg = err.message || "";
       const errorStr = JSON.stringify(err);
-      const isEntityNotFound = msg.includes("Requested entity was not found") || errorStr.includes("NOT_FOUND");
+      const isEntityNotFound = msg.includes("Requested entity was not found") || errorStr.includes("NOT_FOUND") || msg.includes("404");
+      const isQuota = msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota") || msg.includes("limit");
       
       if (isEntityNotFound) {
         setError({ 
-          message: "API Entity mismatch. Your current API key project might not have access to these models.",
+          message: "API Entity mismatch. Your current project may not have access to these vision models.",
           isNotFound: true
         });
-      } else if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")) {
+      } else if (isQuota) {
         setError({ 
-          message: "Quota Exceeded. Please wait a moment before trying again."
+          message: "Vision Lab Quota Exceeded. Please try again in a moment or switch to a paid API key for higher throughput.",
+          isQuota: true
         });
       } else if (msg.includes("403") || msg.includes("PERMISSION_DENIED") || errorStr.includes("403")) {
         setError({ 
-          message: "Permission Denied. Please ensure your API key is correctly configured."
+          message: "Permission Denied. Ensure your API project has Billing enabled for these specific models.",
+          isNotFound: true 
         });
       } else {
         setError({ message: msg || "Neural Synthesis encountered an unexpected error." });
@@ -298,12 +300,12 @@ const App: React.FC = () => {
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_12px_red] shrink-0"></div>
                     <div className="flex-1">{error.message}</div>
                   </div>
-                  {error.isNotFound && (
+                  {(error.isNotFound || error.isQuota) && (
                     <button 
                       onClick={handleOpenKeySelector}
                       className="mt-2 lg:mt-0 lg:ml-4 bg-white text-black px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all whitespace-nowrap"
                     >
-                      Update API Project
+                      {error.isQuota ? 'Switch to Paid Project' : 'Select New Project'}
                     </button>
                   )}
                 </div>
