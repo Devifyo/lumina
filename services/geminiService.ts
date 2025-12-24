@@ -8,11 +8,10 @@ export async function editImage(
   customPrompt?: string,
   selection?: Selection
 ): Promise<string | null> {
-  // Always use the latest available key from environment
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-  
-  // Use flash-image model as it works with both free and paid tiers
-  const MODEL_NAME = 'gemini-2.5-flash-image';
+
+  const PRIMARY_MODEL = 'gemini-2.5-flash-image';
+  const FALLBACK_MODEL = 'gemini-flash-latest';
 
   let prompt = '';
   switch (mode) {
@@ -68,9 +67,9 @@ Apply the modification while maintaining consistency with the original lighting 
       break;
   }
 
-  try {
+  const performRequest = async (model: string): Promise<string | null> => {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: MODEL_NAME,
+      model: model,
       contents: {
         parts: [
           {
@@ -95,15 +94,32 @@ Apply the modification while maintaining consistency with the original lighting 
     if (candidates.length > 0) {
       for (const part of candidates[0].content.parts) {
         if (part.inlineData) {
-          // Return base64 as a data URI
           return `data:image/png;base64,${part.inlineData.data}`;
         }
       }
     }
-    
     return null;
+  };
+
+  try {
+    // Attempt with Primary Model
+    return await performRequest(PRIMARY_MODEL);
   } catch (error: any) {
-    console.error("Neural Synthesis Engine Error:", error);
+    const status = error?.status || error?.code;
+    const message = error?.message || "";
+
+    // Check if error is Quota (429) or Bad Request (400)
+    if (status === 429 || status === 400 || message.includes("quota") || message.includes("limit")) {
+      console.warn(`Primary model ${PRIMARY_MODEL} failed (Status: ${status}). Falling back to ${FALLBACK_MODEL}...`);
+      try {
+        return await performRequest(FALLBACK_MODEL);
+      } catch (fallbackError: any) {
+        console.error("Fallback Model Synthesis Error:", fallbackError);
+        throw fallbackError;
+      }
+    }
+
+    console.error("Primary Model Synthesis Error:", error);
     throw error;
   }
 }
