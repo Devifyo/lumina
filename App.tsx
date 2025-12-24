@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [originalMimeType, setOriginalMimeType] = useState<string>('image/png');
   const [editedImage, setEditedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<{ message: string; showUpgrade?: boolean } | null>(null);
+  const [error, setError] = useState<{ message: string } | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<Selection | null>(null);
@@ -101,13 +101,11 @@ const App: React.FC = () => {
       
       if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")) {
         setError({ 
-          message: "Quota Exceeded. Consider using a paid project key for unlimited professional synthesis.",
-          showUpgrade: true 
+          message: "Quota Exceeded. Please wait a moment before trying again."
         });
       } else if (msg.includes("403") || msg.includes("PERMISSION_DENIED") || errorStr.includes("403")) {
         setError({ 
-          message: "Permission Denied. If using Pro features, a paid billing project key is required.",
-          showUpgrade: true 
+          message: "Permission Denied. Please ensure your API key is correctly configured."
         });
       } else {
         setError({ message: msg || "Neural Synthesis encountered an unexpected error." });
@@ -293,14 +291,6 @@ const App: React.FC = () => {
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_12px_red] shrink-0"></div>
                     <div className="flex-1">{error.message}</div>
                   </div>
-                  {error.showUpgrade && (
-                    <button 
-                      onClick={handleOpenKeySelector}
-                      className="mt-4 lg:mt-0 px-6 py-2.5 bg-white text-black rounded-xl hover:bg-indigo-500 hover:text-white transition-all text-[9px] font-black"
-                    >
-                      Initialize Paid Key
-                    </button>
-                  )}
                 </div>
               )}
             </div>
