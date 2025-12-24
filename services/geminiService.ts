@@ -1,8 +1,5 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { EditMode, Selection } from "../types";
-
-const MODEL_NAME = 'gemini-2.5-flash-image';
 
 export async function editImage(
   base64Data: string,
@@ -11,7 +8,12 @@ export async function editImage(
   customPrompt?: string,
   selection?: Selection
 ): Promise<string | null> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Use the API key provided in the environment. Guidelines state process.env.API_KEY.
+  // Assuming the developer or environment mapping handles API_KEY vs GEMINI_API_KEY.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  
+  // Use gemini-2.5-flash-image for all visual generation and editing tasks
+  const MODEL_NAME = 'gemini-2.5-flash-image';
 
   let prompt = '';
   switch (mode) {
@@ -19,13 +21,13 @@ export async function editImage(
       prompt = `ACT AS AN ADVANCED ALPHA-CHANNEL EXTRACTION ENGINE.
 Task: PROFESSIONAL SUBJECT ISOLATION (TRANSPARENT PNG).
 Instructions:
-1. Identify the primary subject(s) in the foreground with maximum precision.
-2. Remove all background elements, including sky, ground, and distant objects.
-3. CRITICAL: The resulting image MUST have a functional alpha channel.
-4. Set the Alpha value of all background pixels to 0 (100% transparent).
-5. Ensure subject edges are clean, anti-aliased, and free of background color bleeding.
-6. Return the isolated subject as a high-quality transparent PNG.
-7. NO placeholder backgrounds. Only the subject on a truly transparent canvas.`;
+1. Precisely identify the primary subject(s) in the foreground.
+2. REMOVE ALL BACKGROUND PIXELS including shadows, floors, skies, and secondary objects.
+3. CRITICAL: The output image MUST BE A TRANSPARENT PNG.
+4. Set the alpha value of all non-subject pixels to 0 (100% transparent).
+5. Ensure subject edges are sharp, clean, anti-aliased, and have NO fringe colors from the original background.
+6. The resulting subject must be centered on a transparent canvas.
+7. DO NOT add any placeholder backgrounds (no white, no black, no checkers). JUST TRANSPARENCY.`;
       break;
     case EditMode.REMOVE_OBJECT:
       const coordContext = selection 
@@ -36,40 +38,41 @@ Instructions:
 Task: SEAMLESS OBJECT ERASURE & SCENE RECONSTRUCTION.
 Context: ${coordContext}
 Instructions:
-1. Completely remove the target object, its shadows, reflections, and any related artifacts.
-2. Inpaint the resulting void by synthesizing the background textures, patterns, and lighting from the surrounding area.
-3. Ensure the reconstruction is mathematically and visually consistent with the rest of the scene's perspective and depth.
-4. The final result must be a single cohesive image where the object is entirely gone without a trace.
-5. RETURN ONLY THE EDITED IMAGE DATA.`;
+1. Completely remove the target object and all its related shadows and reflections.
+2. Synthesize a perfectly matched background by inferring patterns and lighting from surrounding pixels.
+3. Maintain perspective and focal depth consistency across the reconstructed area.
+4. The final result must look untouched, as if the object never existed.
+5. Return only the edited image data.`;
       break;
     case EditMode.ENHANCE:
-      prompt = `ACT AS A PROFESSIONAL PHOTO EDITOR.
-Task: NEURAL ENHANCEMENT & UPSCALING.
+      prompt = `ACT AS A PROFESSIONAL PHOTO RETOUCHER.
+Task: NEURAL ENHANCEMENT & HD RESTORATION.
 Instructions:
-1. Increase local contrast and sharpness while suppressing digital noise.
-2. Optimize color balance, saturation, and dynamic range for a premium look.
-3. Simulate a high-end full-frame camera sensor fidelity.
-4. Fix compression artifacts and restore micro-textures.
-5. RETURN ONLY THE ENHANCED IMAGE DATA.`;
+1. Sharpen micro-textures and restore details lost to compression.
+2. Optimize contrast, dynamic range, and color vibrancy while maintaining realism.
+3. Suppress digital noise without losing organic skin or material textures.
+4. Upscale the perceived quality to professional standard.
+5. Return only the enhanced image data.`;
       break;
     case EditMode.BLUR_BACKGROUND:
       const focusPoint = selection 
-        ? `FOCUS ANCHOR: Point at (X: ${selection.x.toFixed(4)}, Y: ${selection.y.toFixed(4)}).` 
-        : `AUTO-FOCUS: Find the most prominent foreground subject.`;
+        ? `FOCUS ANCHOR: Focus on point (X: ${selection.x.toFixed(4)}, Y: ${selection.y.toFixed(4)}).` 
+        : `AUTO-FOCUS: Focus on the most prominent foreground subject.`;
 
-      prompt = `ACT AS A CINEMATIC LENS SIMULATOR.
+      prompt = `ACT AS A CINEMATIC OPTICS EMULATOR.
 Task: DEPTH-AWARE BOKEH (PORTRAIT BLUR).
+Context: ${focusPoint}
 Instructions:
-1. Keep the subject at the ${focusPoint} razor-sharp.
-2. Apply a smooth, progressive Gaussian blur to everything behind the subject.
-3. Simulate a fast f/1.4 prime lens aesthetic.
-4. Ensure the depth transition is natural and edges are masked perfectly.
-5. RETURN ONLY THE EDITED IMAGE DATA.`;
+1. Keep the subject crystal clear and sharp.
+2. Apply a smooth, progressive lens blur to all background elements.
+3. Simulate an f/1.4 aperture look with natural bokeh patterns.
+4. Ensure the transition between the focused subject and blurred background is seamless.
+5. Return only the edited image data.`;
       break;
     case EditMode.CUSTOM_PROMPT:
-      prompt = `Task: ARTISTIC NEURAL TRANSFORMATION.
-User Request: "${customPrompt}".
-Maintain the structure and identity of the source while applying the requested changes creatively and realistically. Return the resulting image data only.`;
+      prompt = `Task: CREATIVE NEURAL TRANSFORMATION.
+User Instruction: "${customPrompt}".
+Apply the requested changes while maintaining the original composition's perspective and core identity. Return only the resulting image data.`;
       break;
   }
 
@@ -98,7 +101,6 @@ Maintain the structure and identity of the source while applying the requested c
 
     const candidates = response.candidates || [];
     if (candidates.length > 0) {
-      // Iterate through parts to find the image data as per guidelines
       for (const part of candidates[0].content.parts) {
         if (part.inlineData) {
           return `data:image/png;base64,${part.inlineData.data}`;
@@ -107,8 +109,8 @@ Maintain the structure and identity of the source while applying the requested c
     }
     
     return null;
-  } catch (error) {
-    console.error("Vision Error:", error);
+  } catch (error: any) {
+    console.error("Vision Synthesis Error:", error);
     throw error;
   }
 }

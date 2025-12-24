@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 
 interface ImageUploadProps {
@@ -6,6 +5,7 @@ interface ImageUploadProps {
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload }) => {
+  const APP_NAME = process.env.APP_NAME || 'Lumina Studio';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -47,10 +47,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload }) => {
   return (
     <div 
       className={`
-        relative border-2 border-dashed rounded-[3rem] p-12 flex flex-col items-center justify-center transition-all duration-500 min-h-[420px] backdrop-blur-3xl
+        relative border-2 border-dashed rounded-[3.5rem] p-12 flex flex-col items-center justify-center transition-all duration-700 min-h-[500px] backdrop-blur-3xl overflow-hidden
         ${isDragging 
-          ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02] shadow-[0_0_80px_rgba(99,102,241,0.2)]' 
-          : 'border-slate-800 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-900/60 shadow-2xl'}
+          ? 'border-indigo-400 bg-indigo-500/10 scale-[1.02] shadow-[0_0_120px_rgba(99,102,241,0.3)]' 
+          : 'border-slate-800 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-900/80 shadow-[0_50px_100px_rgba(0,0,0,0.5)]'}
       `}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
@@ -64,42 +64,53 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload }) => {
         accept="image/*"
       />
       
+      {/* Neural glow decorative element */}
+      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-indigo-600/5 blur-[120px] pointer-events-none transition-opacity duration-700 ${isDragging ? 'opacity-100' : 'opacity-40'}`}></div>
+      
       <div className={`
-        w-24 h-24 rounded-3xl flex items-center justify-center mb-8 transition-all duration-500
-        ${isDragging ? 'bg-indigo-500 text-white rotate-12 scale-110' : 'bg-indigo-600/10 text-indigo-400'}
+        relative z-10 w-28 h-28 rounded-[2.5rem] flex items-center justify-center mb-12 transition-all duration-700
+        ${isDragging 
+          ? 'bg-indigo-500 text-white rotate-12 scale-110 shadow-[0_0_50px_rgba(99,102,241,0.6)]' 
+          : 'bg-gradient-to-br from-indigo-600/20 to-violet-600/20 text-indigo-400 border border-indigo-500/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]'}
       `}>
-        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
         </svg>
       </div>
 
-      <div className="text-center space-y-4 max-w-sm mb-10">
-        <h3 className="text-2xl font-black text-white uppercase tracking-tight">
-          Upload Source Image
+      <div className="relative z-10 text-center space-y-6 max-w-md mb-14">
+        <h3 className="text-5xl lg:text-6xl font-extrabold text-white uppercase tracking-tighter leading-none drop-shadow-[0_15px_15px_rgba(0,0,0,0.9)]">
+          Neural Canvas
         </h3>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-relaxed">
-          Drag and drop assets into the workspace or click to browse local storage
-        </p>
+        <div className="flex flex-col gap-3">
+          <p className="text-[14px] font-black text-indigo-400 uppercase tracking-[0.5em] drop-shadow-md">
+            Professional Vision Lab
+          </p>
+          <p className="text-[12px] font-medium text-slate-400 uppercase tracking-widest leading-relaxed opacity-90 px-8">
+            Inject your assets for high-fidelity <br/> subject isolation & background erasure
+          </p>
+        </div>
       </div>
 
+      {/* Redesigned Primary CTA */}
       <button 
         onClick={() => fileInputRef.current?.click()}
-        className="group relative overflow-hidden bg-indigo-600 hover:bg-indigo-500 text-white px-12 py-5 rounded-[2rem] transition-all shadow-2xl active:scale-95"
+        className="group relative z-10 overflow-hidden bg-white text-black px-16 py-6 rounded-[2.5rem] transition-all duration-500 shadow-[0_25px_50px_rgba(0,0,0,0.4)] hover:shadow-[0_30px_60px_rgba(99,102,241,0.4)] hover:-translate-y-1 active:scale-95 border-2 border-white/10"
       >
-        <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.4em] flex items-center gap-3">
+        <div className="absolute inset-0 bg-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"></div>
+        <span className="relative z-10 text-[13px] font-black uppercase tracking-[0.45em] flex items-center gap-4 group-hover:text-white transition-colors duration-300">
           Initialize Studio
         </span>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
       </button>
 
-      <div className="mt-14 flex flex-wrap justify-center gap-8 lg:gap-12">
-        <div className="flex items-center gap-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Lossless Synthesis</span>
+      <div className="mt-16 relative z-10 flex flex-wrap justify-center gap-10 lg:gap-14">
+        <div className="flex items-center gap-3.5 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 backdrop-blur-md">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]"></div>
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Alpha-PNG Extraction</span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div>
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Edge Refinement</span>
+        <div className="flex items-center gap-3.5 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 backdrop-blur-md">
+          <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.8)]"></div>
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Neural Inpainting</span>
         </div>
       </div>
     </div>
