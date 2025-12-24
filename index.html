@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumina Studio Pro | Neural Image Synthesis & Background Removal</title>
+    <meta name="description" content="Lumina Studio Pro provides high-end neural tools for background removal, transparent PNG export, and professional object erasure. Experience studio-quality photo retouching." />
+    <meta name="keywords" content="professional photo editor, background removal, neural inpainting, object eraser, transparent png, photo retouching, lumina studio pro" />
+    <meta name="author" content="Lumina Studio Pro" />
+    <link rel="canonical" href="https://luminastudio.pro/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://luminastudio.pro/" />
+    <meta property="og:title" content="Lumina Studio Pro | Professional Image Retouching" />
+    <meta property="og:description" content="Advanced neural tools for professional image synthesis and subject isolation." />
+    <meta property="og:image" content="https://luminastudio.pro/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Lumina Studio Pro | Neural Image Retouching" />
+    <meta property="twitter:description" content="Professional object erasure and subject cutout tool." />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #020617;
+        color: #f8fafc;
+        overflow-x: hidden;
+      }
+      .checkerboard {
+        background-image: linear-gradient(45deg, #0f172a 25%, transparent 25%),
+                          linear-gradient(-45deg, #0f172a 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, #0f172a 75%),
+                          linear-gradient(-45deg, transparent 75%, #0f172a 75%);
+        background-size: 24px 24px;
+        background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
+        background-color: #020617;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1e293b;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #334155;
+      }
+      @keyframes scan {
+        0% { top: 0%; opacity: 0; }
+        50% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+      }
+      .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(to right, transparent, #818cf8, transparent);
+        box-shadow: 0 0 20px #6366f1;
+        animation: scan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        z-index: 20;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
